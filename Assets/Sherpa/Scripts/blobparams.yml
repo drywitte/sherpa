@@ -1,0 +1,6 @@
+﻿thresholdStep: 20
+minThreshold: 10
+maxThreshold: 20
+minArea: 30
+maxArea: 200
+filterByArea: True
