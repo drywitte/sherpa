@@ -38,21 +38,21 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657838, g: 0.49641234, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 11
-  m_GIWorkflowMode: 0
+  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
     m_IndirectOutputScale: 1
     m_AlbedoBoost: 1
     m_EnvironmentLightingMode: 0
-    m_EnableBakedLightmaps: 1
-    m_EnableRealtimeLightmaps: 1
+    m_EnableBakedLightmaps: 0
+    m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
     serializedVersion: 12
     m_Resolution: 2
@@ -150,10 +150,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddb1bd0a9dad24ff8af32acc4b0f1ae4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CameraImage: {fileID: 0}
-  origin: {fileID: 1886942651}
-  cube: {fileID: 0}
-  m_RaycastManager: {fileID: 1886942653}
 --- !u!4 &18758652
 Transform:
   m_ObjectHideFlags: 0

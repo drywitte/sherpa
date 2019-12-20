@@ -87,6 +87,8 @@ public class SceneController: MonoBehaviour
 	int imageWidth;
 	Color[] pixels;
 	Color32[] pixels_32;
+	private List<Color32>colors = new List<Color32>();
+	private List<Mat>submats = new List<Mat>();
 	List<XRCameraConfiguration> configurations;
 	double scaleFactor;
 	int downsample = 1;
@@ -206,16 +208,19 @@ void Start()
 			//nextActionButton.gameObject.SetActive(false);
 			m_ImageInfo.gameObject.SetActive(true);
 			enableColorSelection = true;
-
+			Debug.Log("Colors list: " + colors.ToString());
 			for (int i = 0; i < cubes.Count; i++)
 			{
 				Vector3 cubeTransform = cubes[i].transform.position;
 				cubeDestinations.Add(cubeTransform);
 				cubes[i].transform.position = new Vector3(cubeTransform.x, 0, cubeTransform.z);
-
-				//cubePositionsUp.Add();
+				colors.Add(kmeansColor(submats[i]));
+				Debug.Log("Length of colors is: " + colors.Count.ToString());
+				Debug.Log("color is " + colors[i].ToString());
+				cubes[i].GetComponent<Renderer>().material.color = Color.black;
+				cubes[i].GetComponent<Renderer>().material.color = colors[i];
+				Debug.Log("Actual cube color is " + cubes[i].GetComponent<Renderer>().material.color.ToString());
 			}
-
 		}
 		else if(actionText.text == "Reset")
 		{
@@ -231,41 +236,27 @@ void Start()
 				Destroy(cubes[i]);
 			}
 			cubes.Clear();
+			// colors.Clear();
 			addKeyPixCubes();
 			//lineRenderer.positionCount = 0;
 			enableColorSelection = true;
-
 		}
 	}
 
     private void addKeyPixCubes()
 	{
-		keyPix.Sort(SortByX);
+		// keyPix.Sort(SortByX);
 		for (int i = 0; i < keyPix.Count; i++)
 		{
 			// convert to viewpoint
 			Vector3 default_coords = new Vector3(2 * keyPix[i][1] * downsample, Screen.height - 2 * (keyPix[i][0]) * downsample, 0);
-			// Debug.Log("Key pixel value: 1 is " + keyPix[i][1].ToString() + " and 0 is: " + keyPix[i][0].ToString());
-			// // Vector3 coords = new Vector3((keyPix[i][1]/image.height), (keyPix[i][0]/image.width), 0);
-
-			// 	// // Convert viewpoint to screenpoint
-			// 	// // coords = cam.ViewportToScreenPoint(coords);
-			// 	// // Debug.Log("Coords are " + coords.ToString());
-			// 	// // next try cam.scaledPixelWidth
-			// 	// Debug.Log("Original coords in screen are " + default_coords.ToString());
-			// 	// // Vector3 resized_coords = new Vector3((keyPix[i][0]/image.width) * (Screen.width/image.width), (keyPix[i][1]/image.height)*(Screen.height/image.height), 0);
-			// 	// // resized_coords = cam.ViewportToScreenPoint(resized_coords);
-			// 	// // Debug.Log("Resized coords in screen are " + resized_coords.ToString());
-
-			// 	// // for some reason this is necessary for raycasting to work
-			// gamePiece = Instantiate(cube, default_coords, origin.transform.rotation);
-			// 	// // cubes.Add(gamePiece);
 			if (enableGlobalCubePlacement)
 			{
 				if (rayCastManager.Raycast(default_coords, s_Hits, TrackableType.PlaneWithinPolygon))
 				{
 					Pose hitPose = s_Hits[0].pose;
 					gamePiece = Instantiate(cube, hitPose.position, origin.transform.rotation);
+					// gamePiece.GetComponent<Renderer>().material.color = colors[i];
 					// gamePiece.transform.localScale = new Vector3(gamePiece.transform.localScale.x + keyPix[i][2], gamePiece.transform.localScale.y + keyPix[i][2], gamePiece.transform.localScale.z + keyPix[i][2]);
 					cubes.Add(gamePiece);
 					Debug.Log("Target position " + hitPose.position + " & Target rotation " + hitPose.rotation);
@@ -273,6 +264,11 @@ void Start()
 			}
 
 		}
+		for (int j = 0; j < colors.Count; j++) {
+				cubes[j].GetComponent<Renderer>().material.color = Color.black;
+				cubes[j].GetComponent<Renderer>().material.color = colors[j];
+				Debug.Log("kmeans colors applied");
+		}	
 	}
 
 	void Update() {
@@ -329,54 +325,10 @@ void Start()
 	}
 
 
-			//				if (rayCastManager.Raycast(touch.position, s_Hits2, TrackableType.PlaneWithinPolygon))
-			//				{
-			//					Color pressedColor = getColorAtPress((int)touch.position.x, (int)touch.position.y);
-			////					setupRawImage(pressedColor);
-			//					//List<Vector3> enabledPoints = getEnabledKeypoints(pressedColor);
-
-			//                    for (int i = 0; i < cubes.Count; i++)
-			//					{
-			//						Destroy(cubes[i]);
-			//					}
-			//					cubes.Clear();
-
-			//					keyPix.Sort(SortByX); // Ends up being Y coord since screen is rotated
-			//					for (int i = 0; i < keyPix.Count; i++)
-			//					{
-			//						// convert to viewpoint
-			//						Vector3 default_coords = new Vector3(2 * keyPix[i][1] * downsample, Screen.height - 2 * (keyPix[i][0]) * downsample, 0);
-
-			//						if (rayCastManager.Raycast(default_coords, s_Hits, TrackableType.PlaneWithinPolygon))
-			//						{
-			//							Pose hitPose = s_Hits[0].pose;
-			//							gamePiece = Instantiate(cube, hitPose.position, origin.transform.rotation);
-			//							cubes.Add(gamePiece);
-			//							Debug.Log("Target position color selection " + hitPose.position + " & Target rotation " + hitPose.rotation);
-			//						}
-			//					}
-
-
-			//lineRenderer.positionCount = cubes.Count;
-			//for (int j = 0; j < cubes.Count; j++)
-			//{
-			//	lineRenderer.SetPosition(j, cubes[j].transform.position);
-			//}
-
-
-
-
-			//enableColorSelection = false;
-			//m_ImageInfo.gameObject.SetActive(false);
-	//	}
-	//}
-	//	}
-	//}
-
     // List of keypoints is global - keyPix
     private List<Vector3> getEnabledKeypoints(Color color)
 	{
-		keyPix.Sort(SortByX);
+		// keyPix.Sort(SortByX);
 		// Dummy code 
 		List<Vector3> enabledKeyPix = new List<Vector3>();
         if(keyPix.Count >= 2)
@@ -480,12 +432,13 @@ void Start()
 		
 		// get cropped from resized texture & crop
 		pixels = m_rotated.GetPixels(0, (int) (m_rotated.height - Screen.width/downsample)/2, (int) Screen.height/downsample, (int) Screen.width/downsample, 0);
-		
+		Destroy(m_rotated);
+
 		// load cropped pixels into new texture
 		Texture2D cropped_tex = new Texture2D((int) Screen.height/downsample, (int) Screen.width/downsample, TextureFormat.RGBA32, false);
 		cropped_tex.SetPixels(pixels, 0);
 		cropped_tex.Apply();
-
+	
 		for (int i = 0; i < cubes.Count; i++) {
 			Destroy(cubes[i]);
 		}
@@ -494,20 +447,23 @@ void Start()
 		// create mat of contours using scaled down cropped image
 		matImg = new Mat(cropped_tex.height, cropped_tex.width, CvType.CV_8UC4);
 		OpenCVForUnity.UnityUtils.Utils.texture2DToMat(cropped_tex, matImg);
+		Destroy(cropped_tex);
 		contourMat = getHolds(matImg);
 
 		// create texture
 		imgText = new Texture2D(contourMat.cols(), contourMat.rows(), TextureFormat.RGBA32, false);
 
 		getKeyPoints(contourMat);
+		Debug.Log("Length of keypoints is " + keyPix.Count.ToString());
 		for (int i = 0; i < keyPix.Count; i++)
 		{
-			Imgproc.rectangle(contourMat, new OpenCVForUnity.CoreModule.Rect((int)(keyPix[i][0] - keyPix[i][2] / 2), (int)(keyPix[i][1] - keyPix[i][2] / 2), (int)keyPix[i][2], (int)keyPix[i][2]), color);
+			Debug.Log("Mat img is " + matImg);
+			submats.Add(getSubmat(keyPix[i], matImg));
+			// Color col = quantize(keyPix[i], matImg);
+			// Imgproc.rectangle(matImg, new OpenCVForUnity.CoreModule.Rect((int)(keyPix[i][0] - keyPix[i][2] / 2), (int)(keyPix[i][1] - keyPix[i][2] / 2), (int)keyPix[i][2], (int)keyPix[i][2]), new Scalar(col.r, col.g, col.b, col.a), -4, 8);
+			// colors.Add(col);
 		}
-
-		Debug.Log("Length of keypoints is " + keyPix.Count.ToString());
-		// Sort by y value to draw lines appropriately
-
+		Debug.Log("Length of submats is " + submats.Count.ToString());
 		addKeyPixCubes();
 
 		Utils.matToTexture2D(matImg, imgText, true);
@@ -516,8 +472,8 @@ void Start()
 		if(m_RawImage.texture != null)
 		{
 			Destroy(m_RawImage.texture);
-			Destroy(cropped_tex);
-			Destroy(m_rotated);
+			// Destroy(cropped_tex);
+			// Destroy(m_rotated);
 		}
 		
 		// Set the RawImage's texture so we can visualize it.
@@ -529,6 +485,7 @@ void Start()
     void getKeyPoints(Mat matImg)
     {	
 		keyPix.Clear();
+		submats.Clear();
         MatOfKeyPoint keypts = new MatOfKeyPoint();
         Mat hierarchy = new Mat();
         blobber.detect(matImg, keypts);
@@ -624,7 +581,6 @@ void Start()
         // e.Dispose();
         contours.Clear();
 
-
         return contourMat;
 	}
 
@@ -646,6 +602,52 @@ void Start()
 		Debug.Log("Pixel at touch is R: " + selectedColor.r + "G " + selectedColor.g + "B: " + selectedColor.b);
 		return selectedColor;
 	}
+
+	Mat getSubmat(Vector3 roi, Mat matImg)  {
+        Debug.Log("The matrix height: " + matImg.rows() + " and width is: "+ matImg.cols());
+        Debug.Log("key point center is " + roi[0] + ", " + roi[1] + " and size is " + roi[2]);
+        int boundX;
+        int boundY;
+
+        // ensure we don't go over bounds of image
+        if (roi[0] + roi[2] > matImg.cols()) {
+            boundX = matImg.cols();
+        }
+        else {
+            boundX = (int)(roi[0] + roi[2]);
+        }
+        if (roi[1] + roi[2] > matImg.rows()) {
+            boundY = matImg.rows();
+        }
+        else {
+            boundY = (int)(roi[1] + roi[2]);
+        }
+        Debug.Log("Bound x is :" + boundX + " and bound y is: " + boundY);
+        Mat submat = matImg.submat(new Range((int)roi[1], boundY), new Range((int)roi[0], boundX));
+        // Imgproc.cvtColor(submat, submat, Imgproc.COLOR_BGR2HSV);
+		Debug.Log("submat is " + submat);
+        submat.convertTo(submat, CvType.CV_32F);
+		return submat;
+	}
+
+	 // quantizes colors
+    Color kmeansColor(Mat submat)
+    {
+        Mat kScores = new Mat();
+        Mat centers = new Mat();
+        TermCriteria end = new TermCriteria();
+        end.type = TermCriteria.COUNT;
+		end.maxCount = 2;
+        Core.kmeans(submat, 4, kScores, end , 2, 0, centers);
+        Color col = new Color32((byte)(255 * centers.get(0, 0)[0]), (byte)(255 * centers.get(0, 1)[0]), (byte)(255 * centers.get(0, 2)[0]), (byte)(255 * centers.get(0, 3)[0]));
+		Debug.Log("Center has # cols: " + centers.cols().ToString());
+        Debug.Log("color is " + centers.get(0, 1)[0].ToString() + " " + centers.get(0, 1)[0].ToString() + " " + centers.get(0, 2)[0].ToString() + " ");
+        Debug.Log("Centers height: " + centers.rows() + " and width: " + centers.cols());
+		submat.Dispose();
+		kScores.Dispose();
+		centers.Dispose();
+		return col;
+    }
 
 
 	Texture2D m_Texture;
